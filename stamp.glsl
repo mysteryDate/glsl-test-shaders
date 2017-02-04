@@ -1,9 +1,11 @@
 // vec2 iResolution
 // vec2 iMouse
 // float iGlobalTime
+#define BLUR_SIZE 16
 
 uniform sampler2D heart_unbroken;
 uniform sampler2D perlin_noise;
+
 
 vec2 random2(vec2 st){
     st = vec2( dot(st,vec2(0.040,-0.250)),
@@ -34,14 +36,26 @@ vec4 getBlurredPixel(vec2 st, sampler2D texture, float amt) {
   return (right + left + up + down) / 4.0;
 }
 
-vec4 directionalBlur(vec2 st, sampler2D texture, vec2 direction, float amt, int size) {
+vec4 directionalBlur(vec2 st, sampler2D texture, vec2 direction, float amt) {
   direction = normalize(direction);
   vec4 tex = vec4(0.);
-  for(int i = 0; i < 16; i++) {
-    tex += texture2D(texture, st - (float(i) + 1.0) * amt * direction) / (pow(2.0, float(i)));
+  // const s = size;
+  for(int i = 0; i < BLUR_SIZE; i++) {
+    tex += texture2D(texture, st - (float(i) + 1.0)/float(BLUR_SIZE) * amt * direction) / (pow(2.0, float(i)));
   }
 
-  return tex / 2.0;
+  return tex / (2.0 - 1.0/float(BLUR_SIZE));
+}
+
+vec4 linearDirectionalBlur(vec2 st, sampler2D texture, vec2 direction, float amt) {
+  direction = normalize(direction);
+  vec4 tex = vec4(0.);
+  for(int i = 0; i < BLUR_SIZE; i++) {
+    tex += texture2D(texture, st - (float(i) + 1.0)/float(BLUR_SIZE) * amt * direction) * (1.0 - float(i)/float(BLUR_SIZE));
+  }
+
+  float sum = 1.0 + (float(BLUR_SIZE) - 1.0) / 2.0;
+  return tex / sum;
 }
 
 void main()
@@ -60,9 +74,12 @@ void main()
 
   vec4 heartTex = texture2D(heart_unbroken, uv);
   vec4 blurredPix = getBlurredPixel(uv, heart_unbroken, 0.008 * distanceToLine);
-  vec4 dBlur = directionalBlur(uv, heart_unbroken, vec2(1.0, 0.0), 10.0 * iMouse.x * 0.003 * distanceToLine, 4);
-  gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a + dBlur.a)/2.0;
-  // gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a);
+  vec4 dBlur = directionalBlur(uv, heart_unbroken, vec2(1.0, 0.0), 0.012 * distanceToLine);
+  vec4 dlBlur = linearDirectionalBlur(uv, heart_unbroken, vec2(1.0, 0.0), 0.05 * distanceToLine);
+  // gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a + dlBlur.a)/2.0;
+  // gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a + dBlur.a)/2.0;
+  gl_FragColor = vec4(1.0) - color * noisey * (dlBlur.a);
+  // gl_FragColor = vec4(1.0) - color * noisey * (dBlur.a);
   // gl_FragColor = dBlur;
 
 }
