@@ -34,6 +34,16 @@ vec4 getBlurredPixel(vec2 st, sampler2D texture, float amt) {
   return (right + left + up + down) / 4.0;
 }
 
+vec4 directionalBlur(vec2 st, sampler2D texture, vec2 direction, float amt, int size) {
+  direction = normalize(direction);
+  vec4 tex = vec4(0.);
+  for(int i = 0; i < 16; i++) {
+    tex += texture2D(texture, st - (float(i) + 1.0) * amt * direction) / (pow(2.0, float(i)));
+  }
+
+  return tex / 2.0;
+}
+
 void main()
 {
   vec2 uv = gl_FragCoord.xy/iResolution.xy;
@@ -50,6 +60,9 @@ void main()
 
   vec4 heartTex = texture2D(heart_unbroken, uv);
   vec4 blurredPix = getBlurredPixel(uv, heart_unbroken, 0.008 * distanceToLine);
-  gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a + 2.0 * blurredPix.a)/2.0;
+  vec4 dBlur = directionalBlur(uv, heart_unbroken, vec2(1.0, 0.0), 10.0 * iMouse.x * 0.003 * distanceToLine, 4);
+  gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a + dBlur.a)/2.0;
+  // gl_FragColor = vec4(1.0) - color * noisey * (heartTex.a);
+  // gl_FragColor = dBlur;
 
 }
