@@ -4,6 +4,7 @@
 #define BLUR_SIZE 16
 
 uniform sampler2D heart_unbroken;
+uniform sampler2D testTextTexture;
 uniform sampler2D perlin_noise;
 
 
