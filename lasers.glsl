@@ -2,16 +2,14 @@
 // vec2 iMouse
 // float iGlobalTime
 
-vec2 laser(float x, float a, float theta) {
-  float xn = x + a - 0.5;
-  float y = xn / tan(theta) + 1.0;
-  float d = (y + 1.0) * sin(theta) - xn * cos(theta);// - ()
-  return vec2(y, d);
-}
-
-float plot(vec2 uv, float pct){
-  return  smoothstep( pct-0.02, pct, uv.y) -
-          smoothstep( pct, pct+0.02, uv.y);
+float laser(vec2 uv, float pos, float theta) {
+  // y-coordinate of center of laser at this x-coordinate
+  float yCenter = (uv.x + pos - 0.5) / tan(theta) + 1.0;
+  // y-distance from line at this uv
+  float yDist = uv.y - yCenter;
+  // distance to laser
+  float dist = yDist * sin(theta);
+  return 1.0 - abs(dist);
 }
 
 void main()
@@ -19,8 +17,9 @@ void main()
   vec2 uv = gl_FragCoord.xy/iResolution;
 
   float a = 0.0;
+  float theta = 0.2;
 
-  vec2 yd = laser(uv.x, 0.0, 0.3);
+  float laser1 = laser(uv, a, theta);
 
-  gl_FragColor = vec4(yd.x, yd.y, 1.0,1.0);
+  gl_FragColor = vec4(laser1);
 }
