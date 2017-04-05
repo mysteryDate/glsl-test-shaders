@@ -16,7 +16,7 @@ void main()
 {
   vec2 uv = gl_FragCoord.xy/iResolution;
 
-  float y = parabola(uv.x,1.0);
+  float y = parabola(uv.x,3.0);
 
   vec3 color = vec3(y);
 

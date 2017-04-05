@@ -48,5 +48,5 @@ vec4 marchingLines() {
 
 void main() {
   gl_FragColor = blueSquares();
-  gl_FragColor = marchingLines();
+  // gl_FragColor = marchingLines();
 }

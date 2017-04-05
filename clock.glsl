@@ -47,7 +47,7 @@ void main()
 
   vec3 col = vec3(hourPower, minutePower, secondPower);
 
-  gl_FragColor = vec4(col * colorHand, 1.0) * 1.0;
+  gl_FragColor = vec4(col * colorHand, 1.0);
   // gl_FragColor = vec4(minutePower, 0., 0., 1.0);
   // gl_FragColor = vec4(secondPower, 0., 0., 1.0);
 }
