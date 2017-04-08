@@ -1,7 +1,7 @@
 // vec2 iResolution
 // vec2 iMouse
 // float iGlobalTime
-int BLADES = 110;
+#define BLADES 110
 
 vec3 rotateX(float a, vec3 v)
 {
@@ -38,12 +38,6 @@ vec3 backg(vec3 ro, vec3 rd)
   return mix(sky, ground, step(0.0, t));
 }
 
-// some simple noise just to break up the hideous banding
-float dither()
-{
-  return fract(gl_FragCoord.x * 0.482635532 + gl_FragCoord.y * 0.1353412 + iGlobalTime * 100.0) * 0.008;
-}
-
 void main()
 {
   vec3 ct = vec3(0.0, 1.0, 5.0);
@@ -63,22 +57,22 @@ void main()
 
   vec3 fcol = backg(ro, rd);
 
-  for(int i = 0; i < 110; i += 1)
+  for(int i = 0; i < BLADES; i += 1)
   {
-  float z = -(float(110 - i) * 0.1 + 1.0);
-  vec4 pln = vec4(0.0, 0.0, -1.0, z);
-  float t = (pln.w - dot(pln.xyz, ro)) / dot(pln.xyz, rd);
-  vec2 tc = ro.xy + rd.xy * t;
+    float z = -(float(BLADES - i) * 0.1 + 1.0);
+    vec4 pln = vec4(0.0, 0.0, -1.0, z);
+    float t = (pln.w - dot(pln.xyz, ro)) / dot(pln.xyz, rd);
+    vec2 tc = ro.xy + rd.xy * t;
 
-  tc.x += cos(float(i) * 3.0) * 4.0;
+    tc.x += cos(float(i) * 3.0) * 4.0;
 
-  float cell = floor(tc.x);
+    float cell = floor(tc.x);
 
-  tc.x = (tc.x - cell) - 0.5;
+    tc.x = (tc.x - cell) - 0.5;
 
-  vec4 c = grass(tc, float(i) + cell * 10.0);
+    vec4 c = grass(tc, float(i) + cell * 10.0);
 
-  fcol = mix(fcol, c.rgb, step(0.0, t) * c.w);
+    fcol = mix(fcol, c.rgb, step(0.0, t) * c.w);
   }
 
   fcol = pow(fcol * 1.1, vec3(0.8));
@@ -89,6 +83,6 @@ void main()
   fcol *= 0.2 + 0.8*pow( 16.0*q.x*q.y*(1.0-q.x)*(1.0-q.y), 0.1 );
 
 
-  gl_FragColor.rgb = fcol * 1.8 + vec3(dither());
+  gl_FragColor.rgb = fcol * 1.8;
   gl_FragColor.a = 1.0;
 }
