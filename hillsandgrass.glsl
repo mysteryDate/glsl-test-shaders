@@ -46,36 +46,38 @@ vec4 hills(vec2 st)
 vec3 brightGrassColor = vec3(0.05, 0.1, 0.0) * 0.8;
 vec3 darkGrassColor = vec3(0.0, 0.3, 0.0);
 
-vec4 grass(vec2 p, float x)
+vec4 grass(vec2 p, float seed)
 {
-  float s = mix(0.7, 2.0, 0.5 + sin(x * 22.0) * .5);
-  p.x += pow(1.0 + p.y, 2.0) * 0.1 * cos(x * 0.5 + iGlobalTime);
+  float s = mix(0.7, 2.0, 0.5 + sin(seed * 22.0) * .5);
+  p.x += pow(1.0 + p.y, 2.0) * 0.1 * cos(seed * 0.5 + iGlobalTime);
   p.x *= s;
   p.y = (1.0 + p.y) * s - 1.0;
   float m = 1.0 - smoothstep(0.0,
                              clamp(1.0 - p.y * 1.5, 0.01, 0.6) * 0.2 * s,
                              pow(abs(p.x) * 19.0, 1.5) + p.y - 0.6);
+  return vec4(m * smoothstep(-1.0, -0.9, p.y));
   return vec4(
     mix(brightGrassColor,
         darkGrassColor,
         (p.y + 1.0) * 0.5 + abs(p.x)),
     m * smoothstep(-1.0, -0.9, p.y));
 }
-#define BLADES 32
+#define BLADES 1
 
 void main()
 {
   vec2 u_resolution = iResolution.xy;
   vec2 v_uv = gl_FragCoord.xy/iResolution;
-  vec2 position = vec2(0.0,-0.2);
+  vec2 position = vec2(0.6,1.0);
   float aspectRatio = u_resolution.x/u_resolution.y;
 
   // Independent of message size
   float sizeInPix = 400.0;
   vec2 normalizedUV = v_uv*u_resolution/sizeInPix - position;
   // grass grows with message
-  float sizeInPercentage = 0.1;
-  normalizedUV = (v_uv - position) / sizeInPercentage - vec2(0.0, 1.)/sizeInPercentage;
+  float sizeInPercentage = 1.;
+  normalizedUV = (v_uv - position) / sizeInPercentage - vec2(0.0, 0.9)/sizeInPercentage;
+  normalizedUV.y += 0.3;
   normalizedUV.x *= aspectRatio;
 
   vec4 fcol = vec4(0.);
@@ -97,6 +99,7 @@ void main()
 
     fcol = mix(fcol, c * 2.280, c.w);
   }
+  fcol = grass(normalizedUV, 0.1);
 
   gl_FragColor = fcol;
 }

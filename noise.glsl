@@ -62,12 +62,17 @@ void main() {
 
   float col = valuenoise(uv * 100.0 * iMouse.y);
 
+
+
   float d = 2.0 * (iMouse.x - 0.45);
   float q = iMouse.y;
-  col = smoothstep(d, d + 0.2, col);
+  // col = smoothstep(d, d + 0.2, col);
   // col = smoothstep(.0, .1, col);
   // col = smoothstep(-.2,-.1,uv.x);
 
   gl_FragColor = vec4(col);
+  if(col < -0.6) {
+    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+  }
   // gl_FragColor = vec4(iMouse, 1., 1.);
 }
