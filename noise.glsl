@@ -57,10 +57,28 @@ float valuenoise(vec2 st) {
                      dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
 }
 
+vec2 vec2Random(vec2 st) {
+  st = vec2(dot(st, vec2(0.040,-0.250)),
+  dot(st, vec2(269.5,183.3)));
+  return -1.0 + 2.0 * fract(sin(st) * 43758.633);
+}
+
+float gradientNoise(vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+
+    vec2 u = smoothstep(0.0, 1.0, f);
+
+    return mix(mix(dot(vec2Random(i + vec2(0.0,0.0)), f - vec2(0.0,0.0)),
+                   dot(vec2Random(i + vec2(1.0,0.0)), f - vec2(1.0,0.0)), u.x),
+               mix(dot(vec2Random(i + vec2(0.0,1.0)), f - vec2(0.0,1.0)),
+                   dot(vec2Random(i + vec2(1.0,1.0)), f - vec2(1.0,1.0)), u.x), u.y);
+}
+
 void main() {
   vec2 uv = gl_FragCoord.xy/iResolution.xy;
 
-  float col = valuenoise(uv * 100.0 * iMouse.y);
+  float col = gradientNoise(uv * 20.0);
 
 
 
@@ -71,8 +89,9 @@ void main() {
   // col = smoothstep(-.2,-.1,uv.x);
 
   gl_FragColor = vec4(col);
-  if(col < -0.6) {
+  if(col > 0.64) {
     gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
   }
-  // gl_FragColor = vec4(iMouse, 1., 1.);
+
+  // gl_FragColor = vec4(col);
 }

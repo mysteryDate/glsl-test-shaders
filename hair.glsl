@@ -2,124 +2,60 @@
 // vec2 iMouse
 // float iGlobalTime
 
+// uniform vec3 u_color;
+// varying vec2 v_uv;
+// varying float v_seed;
+const vec2 CENTER = vec2(0.5, 0.2);
+const float LUMPINESS = 1.0;
+const float PI = 3.141592;
 
-// void main()
-// {
-//   vec2 uv = gl_FragCoord.xy/iResolution.xy;
-//
-//   gl_FragColor = vec4(uv, 1.0, 1.0);
-// }
-
-
-#define polar(a) vec2(cos(a),sin(a))
-#define rotate(a) mat2(cos(a),sin(a),-sin(a),cos(a));
-
-#define ANIM_FUNC Linear
-
-const float pi = atan(1.0)*4.0;
-
-//--- 2D Shapes ---
-vec2 hex0 = polar((1.0 * pi) / 6.0);
-vec2 hex1 = polar((3.0 * pi) / 6.0);
-vec2 hex2 = polar((5.0 * pi) / 6.0);
-
-float hexagon(vec2 uv,float r)
-{
-    return max(max(abs(dot(uv,hex0)),abs(dot(uv,hex1))),abs(dot(uv,hex2))) - r;
+float map(float value, float inMin, float inMax, float outMin, float outMax) {
+  return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
 }
 
-float circle(vec2 uv,float r)
-{
-    return length(uv) - r;
-}
-//-----------------
-
-//--- Animation Functions ---
-
-float OverShoot(float s,float e,float t)
-{
-    return smoothstep(s,e,t) + sin(smoothstep(s,e,t)*pi) * 0.5;
+vec2 vec2Random(vec2 st) {
+  st = vec2(dot(st, vec2(0.040,-0.250)),
+  dot(st, vec2(269.5,183.3)));
+  return -1.0 + 2.0 * fract(sin(st) * 43758.633);
 }
 
-float Spring(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return 1.0 - cos(t*pi*6.0) * exp(-t*6.5);
-}
+float gradientNoise(vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
 
-float Bounce(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return 1.0 - abs(cos(t*pi*4.0)) * exp(-t*6.0);
-}
+  vec2 u = smoothstep(0.0, 1.0, f);
 
-float Quart(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return 1.0-pow(1.0 - t,4.0);
+  return mix(mix(dot(vec2Random(i + vec2(0.0,0.0)), f - vec2(0.0,0.0)),
+                 dot(vec2Random(i + vec2(1.0,0.0)), f - vec2(1.0,0.0)), u.x),
+             mix(dot(vec2Random(i + vec2(0.0,1.0)), f - vec2(0.0,1.0)),
+                 dot(vec2Random(i + vec2(1.0,1.0)), f - vec2(1.0,1.0)), u.x), u.y);
 }
-
-float Linear(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return t;
-}
-
-float QuartSine(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return sin(t * pi/2.0);
-}
-
-float HalfSine(float s,float e,float t)
-{
-    t = clamp((t - s) / (e - s),0.0,1.0);
-    return 1.0 - cos(t * pi)*0.5+0.5;
-}
-//---------------------------
 
 void main()
 {
-    vec2 res = iResolution.xy / iResolution.y;
-	  vec2 uv = gl_FragCoord.xy / iResolution.y;
-    uv -= res/2.0;
+  vec2 v_uv = gl_FragCoord.xy/iResolution.xy;
 
-    float time = iGlobalTime;
-    time = mod(time,10.0);
+  vec2 fromCenter = v_uv - CENTER;
 
-    float hexrad = ANIM_FUNC(0.0,1.0,time) - ANIM_FUNC(8.0,9.0,time);
+  float radius = length(fromCenter);
+  radius *= 2.0; // now 0 to 1 at edges (sqrt2 at corners)
 
-    hexrad = 0.1 * hexrad + 0.1;
+  float theta = atan(fromCenter.y, fromCenter.x); // 0 to 2PI
+  // TODO: mirror theta, to avoid the "noise seam"
 
-    float df = hexagon(uv,hexrad);
+  float radiusThreshold = gradientNoise(vec2(theta*LUMPINESS, v_uv.x));
+  radiusThreshold = map(radiusThreshold, -1.0, 1.0, 0.5, 1.0);
+  radiusThreshold = 1.;
+  vec2 hairDirection = vec2(0., 1.0);
+  float amt = dot(fromCenter, hairDirection) + 0.5;
+  amt = v_uv.y - CENTER.y;
+  // radiusThreshold *= pow(amt, 1.0);
 
-    vec2 dirs[6];
-    dirs[0] = hex0;
-    dirs[1] = hex1;
-    dirs[2] = hex2;
-    dirs[3] = -hex0;
-    dirs[4] = -hex1;
-    dirs[5] = -hex2;
+  if (radius > radiusThreshold) {
+    discard;
+  }
 
-    float coff = 0.0;
+  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+  // gl_FragColor = vec4(amt);
 
-    uv *= rotate(ANIM_FUNC(3.0,6.0,time)*pi*2.0)
-
-    for(int i = 0;i < 6;i++)
-    {
-        float open = 1.2 + 0.2 * float(i);
-        float close = 6.0 + 0.2 * float(i);
-
-        coff = ANIM_FUNC(open,open+0.2,time) - ANIM_FUNC(close,close+0.2,time);
-    	coff = coff * 0.35;
-
-        df = min(df,circle(uv-dirs[i]*coff,0.075));
-    }
-
-    vec3 color = vec3(0);
-
-    color = vec3(smoothstep(0.000001,0.0,df) * 0.5);
-
-	gl_FragColor = vec4(color, 1.0);
-  // gl_FragColor = vec4(df);
 }
