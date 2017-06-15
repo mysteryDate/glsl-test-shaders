@@ -88,6 +88,7 @@ void main()
   float t = iGlobalTime*.5;
 
   vec3 c = vec3(0.);
+  explosion(uv, vec2(0.5), 1., 1.);
 
   for(float i=0.; i<NUM_EXPLOSIONS; i++) {
     float et = t+i*1234.45235;
