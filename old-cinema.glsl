@@ -1,10 +1,10 @@
+#define BLACK_AND_WHITE
 #define VIGNETTE
 #define FLICKER
-#define BLACK_AND_WHITE
+#define MOVE
 #define LINES_AND_FLICKER
 #define BLOTCHES
 #define GRAIN
-#define MOVE
 
 #define FREQUENCY 15.0
 // #define FREQUENCY 1.0
@@ -29,12 +29,16 @@ float randomLine(float seed)
   float c = rand(seed+2.0) - 0.5;
   float mu = rand(seed+3.0);
 
-  float l = 1.0;
 
+  float d = abs(a * uv.x + b * uv.y + c );
+  float width = 0.1;
+  d = min(d * 1.0/width, 1.0);
+
+  float l = 1.0;
   if ( mu > 0.2) // dark bands
-    l = pow(  abs(a * uv.x + b * uv.y + c ), 1.0/8.0 );
+    l = pow(d, 2.0 * width );
   else // bright bands
-    l = 2.0 - pow( abs(a * uv.x + b * uv.y + c), 1.0/8.0 );
+    l = 2.0 - pow(d, 2.0 * width );
 
   return mix(0.5, 1.0, l);
 }
@@ -69,7 +73,7 @@ void main()
 
   #ifdef MOVE
     // Get some image movement
-    vec2 uv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
+    uv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
   #endif
 
   // Get the image
@@ -99,11 +103,12 @@ void main()
     vI *= pow(16.0 * uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y), 0.4);
   #endif
 
+  // t = 1.;
   // Add some random lines (and some multiplicative flicker. Oh well.)
   #ifdef LINES_AND_FLICKER
-    int l = int(float(NUM_LINES) * rand(t+7.0));
+    int l = int(float(NUM_LINES + 1) * rand(t+7.0));
 
-    for (int i = 0; i < NUM_LINES; i++) {
+    for (int i = 0; i <= NUM_LINES; i++) {
       if (i < l) {
         vI *= randomLine( t+6.0+17.* float(i));
       }
@@ -114,7 +119,7 @@ void main()
   #ifdef BLOTCHES
     int s = int( max(float(NUM_BLOTCHES) * rand(t+18.0) -2.0, 0.0 ));
 
-    for (int i = 0; i < NUM_BLOTCHES; i++) {
+    for (int i = 0; i <= NUM_BLOTCHES; i++) {
       if (i < s) {
         vI *= randomBlotch( t+6.0+19.* float(i));
       }
