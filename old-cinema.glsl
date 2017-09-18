@@ -8,7 +8,7 @@
 
 #define FREQUENCY 15.0
 // #define FREQUENCY 1.0
-#define NUM_LINES 8
+#define NUM_LINES 4
 #define NUM_BLOTCHES 8
 
 uniform sampler2D iChannel0; // ../cait.jpg
@@ -48,7 +48,7 @@ float randomBlotch(float seed)
 {
   float x = rand(seed);
   float y = rand(seed+1.0);
-  float s = 0.01 * rand(seed+2.0);
+  float s = 0.1 * rand(seed+2.0);
 
   vec2 p = vec2(x,y) - uv;
   p.x *= iResolution.x / iResolution.y;
@@ -70,6 +70,7 @@ void main()
 
   // Set frequency of global effect to 15 variations per second
   float t = float(int(u_time * FREQUENCY));
+  // t = 1.;
 
   #ifdef MOVE
     // Get some image movement
