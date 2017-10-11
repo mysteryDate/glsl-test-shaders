@@ -4,7 +4,7 @@
 #define TAU 6.28318530718
 
 #define TILING_FACTOR 1.0
-#define MAX_ITER 8
+#define MAX_ITER 16
 
 float waterHighlight(vec2 p, float time, float foaminess)
 {
@@ -29,13 +29,12 @@ void main()
 {
   float time = u_time * 0.1+23.0;
   vec2 uv = gl_FragCoord.xy / iResolution.xy;
-  vec2 uv_square = vec2(uv.x * iResolution.x / iResolution.y, uv.y);
   float dist_center = pow(2.0*length(uv - 0.5), 2.0);
 
-  float foaminess = smoothstep(0.4, 1.8, dist_center);
+  float foaminess = smoothstep(0.4, 0.8, dist_center);
   float clearness = 0.1 + 0.9*smoothstep(0.1, 0.5, dist_center);
 
-  vec2 p = mod(uv_square*TAU*TILING_FACTOR, TAU)-250.0;
+  vec2 p = mod(uv*TAU*TILING_FACTOR, TAU)-250.0;
 
   float c = waterHighlight(p, time, foaminess);
 
