@@ -32,7 +32,7 @@ void main()
   float dist_center = pow(2.0*length(uv - 0.5), 2.0);
 
   float foaminess = smoothstep(0.4, 0.8, dist_center);
-  float clearness = 0.1 + 0.9*smoothstep(0.1, 0.5, dist_center);
+  float clearness = 0.1 + 0.9*smoothstep(0.1, 1.5, dist_center);
 
   vec2 p = mod(uv*TAU*TILING_FACTOR, TAU)-250.0;
 
