@@ -20,6 +20,7 @@ vec3 colorMap(vec3 outColor, float luminance) {
 
 vec3 startColor = vec3(0.475, 0.753, 0.875);
 vec3 replacementColor = vec3(0.816, 0.475, 0.718);
+// vec3 replacementColor = vec3(1.0);
 void main()
 {
   vec3 hsvStart = rgb2hsv(startColor);
@@ -36,7 +37,11 @@ void main()
   // tex.rgb = replacementColor * value;
   vec3 hsv = rgb2hsv(tex.rgb);
   // hsv += hsvEnd - hsvStart;
-  hsv.r += hsvEnd.r - hsvStart.r;
+  // if (hsv.g >= 0.5) {
+    // hsv.b += hsvEnd.b - hsvStart.b;
+    hsv.r += hsvEnd.r - hsvStart.r;
+  // }
+  // hsv.g += hsvEnd.g - hsvStart.g;
   tex.rgb = hsv2rgb(hsv);
 
   gl_FragColor = mix(background, tex, tex.a);
