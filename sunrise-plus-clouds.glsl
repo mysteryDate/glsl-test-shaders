@@ -17,16 +17,14 @@ float gain(float x, float k) {
 }
 
 // https://thebookofshaders.com/13/
-
+const mat2 rotation = mat2(
+  cos(0.5), sin(0.5),
+  -sin(0.5), cos(0.5)
+);
 float fbm(vec2 st) {
   float value = 0.0;
   float amplitude = 0.5;
   vec2 shift = vec2(100.0);
-  // Rotate to reduce axial bias
-  mat2 rotation = mat2(
-    cos(0.5), sin(0.5),
-    -sin(0.5), cos(0.5)
-  );
   for (int i = 0; i < 5; i++) {
     value += amplitude * map(valueNoise(st), -1.0, 1.0, 0.0, 1.0);
     st = rotation * st;
@@ -58,24 +56,36 @@ vec4 cloud(vec2 st, float t) {
   return vec4(vec3(1.0), alpha);
 }
 
-vec3 skyGradient(vec2 uv) {
-  vec3 bg = vec3(0.012, 0.6, 0.741);
-  vec3 fg = vec3(0.314, 0.686, 0.894);
+const float texHeight = 0.3;
+const float speed = 0.06;
+const float sunSize = 0.3;
 
-  float k = uv.y;
-  k *= map(valueNoise(uv), -1.0, 1.0, 0.0, 1.5);
-  k = clamp01(k);
-  return mix(bg, fg, k);
-}
+const vec3 blue = vec3(0.314, 0.396, 0.706);
+const vec3 red = vec3(0.592, 0.180, 0.184);
+const vec3 yellow = vec3(0.965, 0.824, 0.365);
+const float riseTime = 16.0;
+void main()
+{
+  vec2 uv = gl_FragCoord.xy/iResolution.x;
+  vec2 sunriseUV = uv;
+  sunriseUV.x -= 0.5; // Shift the sun to the center
+  float sunHeight = map(pow(mod(u_time, riseTime), 0.33), 0.0, pow(riseTime, 0.33), -2.0, 0.1);
+  sunriseUV.y -= sunHeight; // Move
+  float theta = atan(sunriseUV.y, sunriseUV.x); // Range [-pi, pi]
+  vec2 st = mod(vec2(theta, texHeight) + speed * u_time, 1.0);
+  float brightness = sunSize / length(sunriseUV);
+  vec4 sun = texture2D(u_mainTex, st);
 
-vec4 cloud(vec2 uv) {
+  float colorStop = (sunriseUV.y + sunriseUV.x * sunriseUV.x);
+  vec3 bgColor = mix(blue, blue * 0.5, clamp(colorStop/2.0 - 0.5, 0.0, 1.0));
+  bgColor = mix(red, bgColor, clamp(colorStop * 1.5 - 0.5, 0.0, 1.0));
+  bgColor = mix(yellow, bgColor, clamp(2.0 * colorStop, 0.0, 1.0));
+
+  // vec4 cloud = cloud(uv);
   uv.x *= u_resolution.x / u_resolution.y;
 
   float t = u_time;
   t *= 4.0;
-
-  vec3 color = skyGradient(uv + vec2(0.01 * t, 0.0));
-  color *= 0.0;
 
   vec2 repeat = vec2(2.0, 10.0);
   vec2 offset = vec2(15.0);
@@ -83,62 +93,20 @@ vec4 cloud(vec2 uv) {
   float scrollSpeed = 0.01;
   offset.x += t * scrollSpeed;
 
-  vec2 st = uv * repeat + offset;
+  st = uv * repeat + offset;
 
-  float warpSpeed = 0.2;
+  float warpSpeed = 0.1;
   vec4 cloudColor = cloud(st, t * warpSpeed);
 
   cloudColor.a *= map(uv.y, 0.2, 1.0, 0.0, 1.0);
   cloudColor.a = clamp01(cloudColor.a);
 
-  color = mix(color, cloudColor.rgb, cloudColor.a);
+  vec3 color = mix(vec3(0.0), cloudColor.rgb, cloudColor.a);
 
-  return vec4(color, cloudColor.a);
-}
+  vec4 cloud = vec4(color, cloudColor.a);
 
-const float texHeight = 0.3;
-const float speed = 0.02;
-const float sunSize = 0.3;
-const float PI = 3.14159;
-const float duration = 8.0;
-
-const vec3 blue = vec3(0.314, 0.396, 0.706);
-const vec3 red = vec3(0.592, 0.180, 0.184);
-const vec3 yellow = vec3(0.965, 0.824, 0.365);
-const mat3 colors = mat3(blue, red, yellow);
-const float riseTime = 16.0;
-void main()
-{
-  vec2 uv = gl_FragCoord.xy/iResolution.x;
-  vec2 sunriseUV = uv;
-  float sunHeight = map(pow(mod(u_time, riseTime), 0.33), 0.0, pow(riseTime, 0.33), -2.0, 0.1);
-  sunriseUV.y -= sunHeight;
-  // sunriseUV.y -= -0.4;
-  sunriseUV.x -= 0.5;
-  float theta = atan(sunriseUV.y, sunriseUV.x); // Range [-pi, pi]
-  // theta = map(theta, -PI, PI, 0.0, 6.0);
-  vec2 st = mod(vec2(theta, texHeight) + speed * 3.0 * u_time, 1.0);
-  float brightness = sunSize / length(sunriseUV);
-  vec4 tex = texture2D(u_mainTex, st);
-
-  float noiseAmt = 0.2;
-  float noise = valueNoise(sunriseUV * 10.0 + speed * u_time * 10.0);
-  // noise = map(noise, -1.0, 1.0, 1.0 - noiseAmt, 1.0 + noiseAmt);
-  noise = map(noise, -1.0, 1.0, 0.0, noiseAmt);
-  // float colorStop = (sunriseUV.y + sunriseUV.x * sunriseUV.x) + noise;
-  float colorStop = (sunriseUV.y + sunriseUV.x * sunriseUV.x);
-  vec3 bgColor = mix(blue, blue * 0.0, clamp(colorStop/2.0 - 0.5, 0.0, 1.0));
-  bgColor = mix(red, bgColor, clamp(colorStop * 1.5 - 0.5, 0.0, 1.0));
-  bgColor = mix(yellow, bgColor, clamp(2.0 * colorStop, 0.0, 1.0));
-
-  gl_FragColor = tex * brightness + vec4(bgColor, 1.0);
-  vec4 cloud = cloud(uv);
   cloud.a = pow(length(sunriseUV - uv), 1.0) * (1.0 - 0.8 * smoothstep(-0.4, 0.1, sunHeight));
   cloud.rgb *= min(pow(1.0/length(sunriseUV - uv), 3.0), 2.0);
-  gl_FragColor = mix(tex * brightness + vec4(bgColor, 1.0), cloud, cloud.a);
-  // gl_FragColor = mix(tex * brightness + vec4(bgColor, 1.0), cloud, 0.0);
-  // gl_FragColor = cloud;
-  // gl_FragColor *= (cloud(uv) + 1.0);
-  // gl_FragColor =  vec4(bgColor, 1.0);
-  // gl_FragColor = vec4(red, green, blue, 1.0) * brightness;
+
+  gl_FragColor = mix(sun * brightness + vec4(bgColor, 1.0), cloud, cloud.a);
 }
