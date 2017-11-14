@@ -38,13 +38,15 @@ void main()
     }
   }
 
-  color += minDist;
-  color += 1.0 - step(0.02, minDist);
-  color.rg = closestPoint;
+  // color += minDist;
+  // color += 1.0 - step(0.02, minDist);
+  // color.rg = closestPoint;
   color.r += step(0.98, cellPosition.x) + step(0.98, cellPosition.y);
 
   // vec4 tex = texture2D(u_mainTex, map(uv + minVecDist/numCells, -1.0, 1.0, 0.0, 1.0));
   vec4 tex = texture2D(u_mainTex, uv + minVecDist/numCells);
   // gl_FragColor = vec4(color, 1.0);
+  // tex.r = color.r;
   gl_FragColor = tex;
+  gl_FragColor = vec4(color, 1.0);
 }
