@@ -23,7 +23,7 @@ const mat2 rotation = mat2(
 );
 float fbm(vec2 st) {
   float value = 0.0;
-  float amplitude = 0.5;
+  float amplitude = 0.7;
   vec2 shift = vec2(100.0);
   for (int i = 0; i < 5; i++) {
     value += amplitude * map(valueNoise(st), -1.0, 1.0, 0.0, 1.0);
@@ -32,6 +32,7 @@ float fbm(vec2 st) {
     st += shift;
     amplitude *= 0.5;
   }
+  value /= 1.5;
   return value;
 }
 
@@ -81,21 +82,19 @@ void main()
   bgColor = mix(red, bgColor, clamp(colorStop * 1.5 - 0.5, 0.0, 1.0));
   bgColor = mix(yellow, bgColor, clamp(2.0 * colorStop, 0.0, 1.0));
 
-  // vec4 cloud = cloud(uv);
   uv.x *= u_resolution.x / u_resolution.y;
 
   float t = u_time;
-  t *= 4.0;
 
   vec2 repeat = vec2(2.0, 10.0);
   vec2 offset = vec2(15.0);
+  float scrollSpeed = 0.04;
+  float warpSpeed = 0.4;
 
-  float scrollSpeed = 0.01;
   offset.x += t * scrollSpeed;
 
   st = uv * repeat + offset;
 
-  float warpSpeed = 0.1;
   vec4 cloudColor = cloud(st, t * warpSpeed);
 
   cloudColor.a *= map(uv.y, 0.2, 1.0, 0.0, 1.0);
