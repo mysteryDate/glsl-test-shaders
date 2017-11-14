@@ -1,14 +1,14 @@
-// vec2 iResolution
-// vec2 iMouse
-// float iGlobalTime
+// vec2 u_resolution
+// vec2 u_mouse
+// float u_time
 
-uniform sampler2D ghost_1; // ../../web/textures/ghost_1.png
+uniform sampler2D u_mainTex; // textures/cait.jpg
 
 void main()
 {
-  vec2 uv = gl_FragCoord.xy/iResolution.xy;
+  vec2 uv = gl_FragCoord.xy/u_resolution.xy;
 
-  vec4 tex = texture2D(bdayballoon_blue, uv);
+  vec4 tex = texture2D(u_mainTex, uv);
 
   gl_FragColor = tex;
 }
