@@ -37,20 +37,24 @@ void main()
 {
   vec3 color = vec3(0.0);
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
+  // uv = vec2(length(uv - 0.5));
   // uv.x *= u_resolution.x/u_resolution.y;
-  uv *= numSubspaces;
-  vec2 cellNumber = floor(uv);
+  vec2 st = uv * numSubspaces;
+  vec2 cellNumber = floor(st);
+  vec2 initialCellPosition = fract(st);
   float subSpaceRand = floor(map(hash(cellNumber * 100.0).x, -1.0, 1.0, 1.0, numSubSubspaces));
   subSpaceRand = max(2.0, floor(length(cellNumber - numSubspaces/2.0) + 1.0 + map(hash(cellNumber * 100.0).x, -1.0, 1.0, 0.0, 2.0)));
-  float density = 1.0 - length(cellNumber - numSubspaces/2.0);
-  density = map(density, 1.0, -1.0, 0.5, -0.5);
+  float pieceSize = length(cellNumber - numSubspaces/2.0);
+  pieceSize = map(pieceSize, 0.0, sqrt(2.0)/2.0 * numSubspaces, 1.0, 0.0);
   // density = 1.0;
 
-  uv *= subSpaceRand;
-  cellNumber = floor(uv);
-  vec2 cellPosition = fract(uv);
+  st *= subSpaceRand;
+  cellNumber = floor(st);
+  vec2 cellPosition = fract(st);
 
   vec4 result = vec4(8.0);
+  vec2 closestPoint = vec2(0.0);
+  vec2 secondClosestPoint = vec2(0.0);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       vec2 b = vec2(float(i), float(j));
@@ -61,9 +65,12 @@ void main()
         result.y = result.x;
         result.x = d;
         result.zw = r;
+        secondClosestPoint = closestPoint;
+        closestPoint = r;
       }
       else if( d < result.y ) {
         result.y = d;
+        secondClosestPoint = r;
       }
     }
   }
@@ -71,13 +78,16 @@ void main()
   vec4 closestPoints = result;
 
   float border = closestPoints.y - closestPoints.x;
-  float size = map(hash(uv + closestPoints.zw).x, -1.0, 1.0, 0.3, 1.0);
-  size = (1.0 - density) / 3.0;
-  color = mix(milkColor, chocolateColor, smoothstep(size - blurriness, size, border));
-  // scale
+  border = dot(0.5 * (closestPoint + secondClosestPoint), normalize(secondClosestPoint - closestPoint));
+  // float dis = dot( 0.5*(a+b), normalize(b-a) );
+  float alpha = 1.0 - smoothstep(pieceSize - 0.2, pieceSize + 0.2, 1.0 - border);
+  alpha -= step(0.95, initialCellPosition.x) + step(0.95, initialCellPosition.y);
+  alpha = max(0.0, alpha);
+  color = mix(milkColor, chocolateColor, alpha);
 
-  // color.r = step(0.95, cellPosition.x) + step(0.95, cellPosition.y);
+  // color += step(0.95, cellPosition.x) + step(0.95, cellPosition.y);
 	gl_FragColor = vec4(color, 1.0);
+	// gl_FragColor = vec4(uv, 1.0, 1.0);
   // gl_FragColor = vec4(closestPoints.xxx, 1.0);
 	// gl_FragColor = vec4(closestPoints.zw, 1.0, 1.0);
 }
