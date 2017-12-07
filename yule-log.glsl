@@ -219,5 +219,9 @@ void main() {
     sparks = sparkLife*sparksGray*vec3(1.0,0.3,0.0);
   }
 
-  gl_FragColor = vec4(max(fire,sparks)+smoke,1.0);
+  vec2 uv = gl_FragCoord.xy/u_resolution.xy;
+
+  vec4 tex = texture2D(u_mainTex, uv);
+
+  gl_FragColor = vec4(max(fire,sparks)+smoke,1.0) + tex;
 }
