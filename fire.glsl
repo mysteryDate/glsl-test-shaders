@@ -43,6 +43,12 @@ float fbm(vec2 uv)
   return f;
 }
 
+// A reddish to white glow based energy
+vec3 blackBodyRadiation(float c)
+{
+  return vec3(1.5*c, 1.5*c*c*c, c*c*c*c*c*c);
+}
+
 // no defines, standard redish flames
 // #define BLUE_FLAME
 // #define GREEN_FLAME
@@ -57,19 +63,19 @@ void main()
   q.x += 2.0;
   q.y *= 2.0;
   float strength = floor(q.x + 1.0);
-  // float T3 = max(3.0, 1.25 * strength) * u_time;
-  float T3 = max(3.0, 1.25 * strength);
+  float T3 = max(3.0, 1.25 * strength) * u_time;
+  // float T3 = max(3.0, 1.25 * strength);
   q.x = mod(q.x, 1.0) - 0.5;
   q.y -= 0.25;
-  float n = fbm(strength * q - vec2(0.0, T3));
-  float c = 1.0 - 16.0 * pow(max(0.0, length(q * vec2(1.8 + q.y * 1.5, 0.75)) - n * max(0.0, q.y +  0.25)), 1.2);
-  // float c1 = n * c * (1.5 - pow(1.25 * uv.y, 4.0));
-  float c1 = n * c * (1.5 - pow(2.50 * uv.y, 4.0));
-  c1 = clamp(c1, 0.0, 1.0);
+  float noise = fbm(strength * q - vec2(0.0, T3));
+  float flameShape = 1.0 - 16.0 * pow(max(0.0, length(q * vec2(1.8 + q.y * 1.5, 0.75)) - noise * max(0.0, q.y +  0.25)), 1.2);
+  // float flameWithSmoke = noise * flameShape * (1.5 - pow(1.25 * uv.y, 4.0));
+  float flameWithSmoke = noise * flameShape * (1.5 - pow(2.50 * uv.y, 4.0));
+  flameWithSmoke = clamp(flameWithSmoke, 0.0, 1.0);
 
 
-  vec3 col = vec3(1.5*c1, 1.5*c1*c1*c1, c1*c1*c1*c1*c1*c1);
-  col = mix(col, pow(vec3(1.0 - clamp(c1, -1.0, 0.0)) * pow(fbm(strength * q * 1.25 - vec2(0, T3)), 2.0), vec3(2.0)), 0.75 - (col.x + col.y + col.z)/3.0); // Just added this line!!! :)
+  vec3 col = blackBodyRadiation(flameWithSmoke);
+  col = mix(col, pow(vec3(1.0 - clamp(flameWithSmoke, -1.0, 0.0)) * pow(fbm(strength * q * 1.25 - vec2(0, T3)), 2.0), vec3(2.0)), 0.75 - (col.x + col.y + col.z)/3.0); // Just added this line!!! :)
 
 #ifdef BLUE_FLAME
   col = col.zyx;
@@ -78,16 +84,8 @@ void main()
   col = 0.85 * col.yxz;
 #endif
 
-  float a = c * (1.0 - pow(uv.y, 3.0));
-  vec4 finalColor = vec4(mix(vec3(0.0), col, a), 1.0);
-  // finalColor = vec4(c1) + vec4(length(tex)/4.0);
+  float mask = flameShape * (1.0 - pow(uv.y, 3.0));
+  vec4 finalColor = vec4(mix(vec3(0.0), col, mask), 1.0);
+  // finalColor = vec4(flameWithSmoke) + vec4(length(tex)/4.0);
   gl_FragColor = finalColor;
-
-  gl_FragColor = vec4(n);
-  gl_FragColor = vec4(c);
-  gl_FragColor = vec4(c1);
-  gl_FragColor = vec4(col, 1.0);
-  gl_FragColor = vec4(a);
-
-  // gl_FragColor = finalColor * tex.a;
 }
