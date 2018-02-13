@@ -3,10 +3,10 @@
 License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 Contact: tamby@tambako.ch
 */
-uniform sampler2D iChannel0; // textures/iChannel0.jpg
-uniform sampler2D iChannel1; // textures/iChannel1.jpg
-uniform sampler2D iChannel2; // textures/iChannel2.jpg
-uniform sampler2D iChannel3; // textures/iChannel3.jpg
+uniform sampler2D rgbNoise; // textures/shadertoy-rgb-noise.png
+uniform sampler2D stoneTex; // textures/shadertoy-stone.png
+uniform sampler2D redStoneTex; // textures/shadertoy-red-stone.png
+uniform sampler2D darkStoneTex; // textures/shadertoy-dark-stone.png
 
 #define pi 3.141593
 
@@ -232,7 +232,7 @@ float sdConeSection(in vec3 p, in float h, in float r1, in float r2)
 vec2 map_bricks(vec3 pos)
 {
     vec3 pos2 = pos;
-    pos2.yz+= 0.07*texture2D(iChannel1, pos.yz*0.005).g;
+    pos2.yz+= 0.07*texture2D(stoneTex, pos.yz*0.005).g;
     pos2.z+= 0.5*(brickStep.z + 0.02)*mod(floor(0.5*pos2.y/brickStep.y), 2.);
 
     vec2 nb = floor(pos2.yz/brickStep.yz*vec2(0.5, 1.));
@@ -243,7 +243,7 @@ vec2 map_bricks(vec3 pos)
     float bricks = udRoundBox(pos2 - vec3(wallPos.x - wallSize.x + brickSize.x*0.5*btd, brickStep.y, 0.), brickSize, brickBR);
 
     #ifdef brick_bump
-    bricks+= 0.01*smoothstep(0.1, 0.95, texture2D(iChannel3, pos.yz*0.18).r + 0.6*texture2D(iChannel0, 0.2*pos.yz).r)*smoothstep(-0.2, -0.23, pos.x - wallPos.x + wallSize.x - brickSize.x*0.5*btd);
+    bricks+= 0.01*smoothstep(0.1, 0.95, texture2D(darkStoneTex, pos.yz*0.18).r + 0.6*texture2D(rgbNoise, 0.2*pos.yz).r)*smoothstep(-0.2, -0.23, pos.x - wallPos.x + wallSize.x - brickSize.x*0.5*btd);
     #endif
 
     #ifdef show_chimney
@@ -429,15 +429,15 @@ vec3 sky_color(vec3 ray)
     #ifdef procedural_clouds
     float cloudst = smoothstep(-0.2, 0.5, elev)*smoothstep(0.1, 0.97, noise2(11.*cloudSize*ray + vec3(cloudSpeed*currTime)));
     #else
-    float cloudst = smoothstep(-0.2, 0.5, elev)*texture2D(iChannel1, cloudsize*ray.xy).r;
+    float cloudst = smoothstep(-0.2, 0.5, elev)*texture2D(stoneTex, cloudsize*ray.xy).r;
     #endif
     sky = mix(sky, 0.45 + 0.6*vec3(cloudst), smoothstep(0.12, 0.5, cloudst)) + 0.3*vec3(smoothstep(0.2, 0.8, cloudst));
 
     // Ground
     vec3 grass = vec3(0.05, 0.45, 0.3) + vec3(0.19, 0.13, -0.03)*2.7*(0.65 - elev);
-    grass = grass*(0.6 + 2.*abs(elev)*texture2D(iChannel0, 12.*ray.xy).r);
+    grass = grass*(0.6 + 2.*abs(elev)*texture2D(rgbNoise, 12.*ray.xy).r);
 
-    return mix(mix(grass, vec3(0.65)*(0.7 + 0.3*texture2D(iChannel0, 12.*ray.xy).r), smoothstep(-0.17 - 0.035*abs(azimuth), -0.172 - 0.035*abs(azimuth), elev)), sky, smoothstep(-0.0003, 0.0003, elev)) + getFlares(ray);
+    return mix(mix(grass, vec3(0.65)*(0.7 + 0.3*texture2D(rgbNoise, 12.*ray.xy).r), smoothstep(-0.17 - 0.035*abs(azimuth), -0.172 - 0.035*abs(azimuth), elev)), sky, smoothstep(-0.0003, 0.0003, elev)) + getFlares(ray);
 }
 
 // Gets the simplified version of the color of the sky
@@ -456,13 +456,13 @@ vec3 sky_color_s(vec3 ray)
 // Get the color of the cement parts between the bricks
 vec3 getWallColor(vec3 pos)
 {
-    return vec3(0.3 + 0.7*texture2D(iChannel0, 0.9*pos.yz))*(0.5 + 0.5*smoothstep(0., 0.12, texture2D(iChannel3, 0.3*pos.yz).r));
+    return vec3(0.3 + 0.7*texture2D(rgbNoise, 0.9*pos.yz))*(0.5 + 0.5*smoothstep(0., 0.12, texture2D(darkStoneTex, 0.3*pos.yz).r));
 }
 
 // Get the color of the metallic chimney
 vec3 getChimneyColor(vec3 pos, vec3 norm)
 {
-    vec3 chcol = vec3(1.25) - 0.7*texture2D(iChannel2, 0.0007*(5.*pos.xy + cross(norm, pos).yz + cross(pos, norm).zx)).x;
+    vec3 chcol = vec3(1.25) - 0.7*texture2D(redStoneTex, 0.0007*(5.*pos.xy + cross(norm, pos).yz + cross(pos, norm).zx)).x;
 
     return chcol;
 }
@@ -475,14 +475,14 @@ vec3 getBrickColor(vec3 pos)
     vec3 brickCol3 = vec3(0.29, 0.10, 0.04);
 
     vec3 pos2 = pos;
-    pos2.yz+= 0.07*texture2D(iChannel1, pos.yz*0.005).g;
+    pos2.yz+= 0.07*texture2D(stoneTex, pos.yz*0.005).g;
     pos2.z+= 0.5*brickStep.z*floor(0.5*pos2.y/brickStep.y);
     vec2 nb = floor(pos2.yz/brickStep.yz*vec2(0.5, 1.));
     float nbBrick = nb.x + nb.y*90.;
     float nbBrickf = pow(hash(nbBrick), 6.);
     vec3 brickCol = mix(brickCol1, brickCol2, nbBrickf);
-    brickCol = mix(brickCol, brickCol3, pow(smoothstep(0.1, 1.05, 1.2*texture2D(iChannel2, pos.yz*0.18).x*texture2D(iChannel2, pos.yz*0.23).x), 1.5));
-    brickCol*= 0.4 + 0.6*smoothstep(0.80, 0.60, texture2D(iChannel1, pos.yz*0.07).b);
+    brickCol = mix(brickCol, brickCol3, pow(smoothstep(0.1, 1.05, 1.2*texture2D(redStoneTex, pos.yz*0.18).x*texture2D(redStoneTex, pos.yz*0.23).x), 1.5));
+    brickCol*= 0.4 + 0.6*smoothstep(0.80, 0.60, texture2D(stoneTex, pos.yz*0.07).b);
     return brickCol;
 }
 
@@ -857,14 +857,14 @@ void main()
     vec2 uv = gl_FragCoord.xy / iResolution.xy;
 
     vec3 col = vs/vec3(aasamples*aasamples);
-    col *= 0.0;
+    // col *= 0.0;
 
     // Adds the smoke to the image
     #ifdef show_smoke
     if (robjnr!=CHIMNEY_OBJ || isIns)
         col = mix(col, smokeRes.xyz, smokeRes.w)*(1. + 0.06*smokeRes.w);
     #endif
-    //col = smokeRes.rgb * smokeRes.w;
+    // col = smokeRes.rgb * smokeRes.w;
 
     gl_FragColor = vec4(col, 1.);
 }
