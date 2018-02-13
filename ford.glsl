@@ -4,7 +4,7 @@
 
 uniform sampler2D heart_unbroken;
 uniform sampler2D perlin_noise;
-uniform sampler2D cait;
+uniform sampler2D cait; // textures/cait.jpg
 // uniform sampler2D cait;
 
 vec2 random2(vec2 st){
