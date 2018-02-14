@@ -17,7 +17,7 @@ const vec3 brickSize = vec3(0.2, 0.34, 2.04);
 const vec3 brickStep = vec3(0., 0.44, 2.29);
 const float brickBR = 0.05;
 
-const float tubeDiam = 1.8;
+const float tubeDiam = 2.8;
 const float tubeLen1 = 2.1;
 const float tubeclen = 1.6;
 const float tubeLen2 = 1.5;
@@ -51,10 +51,11 @@ const float rrefblur = 0.8;
 // Smoke options
 const float smokeBrightness = 4.0;
 const vec3 smokeCol = vec3(0.7, 0.75, 0.8)*smokeBrightness;
-const float smokeColPresence = 0.4;
+const float smokeColPresence = 0.1;
 const float smokeColBias = 0.7;
 const float smokeScale = 2.;
 const float smokeSpeed = 15.7;
+// const float smokeSpeed = 1.7;
 const float smokeDens = 5.5;
 const float smokeBias = -0.01;
 const float smokePow = 1.9;
@@ -64,7 +65,8 @@ const float smokeTurbulenceScale = 2.5;
 
 // Wind options
 const float maxWindIntensity = 1.8;
-const float maxWindAngle = 0.27;
+// const float maxWindAngle = 0.27;
+const float maxWindAngle = 0.0;
 float windIntensity;
 float dWindIntensity;
 float windAngle;
@@ -127,20 +129,23 @@ vec3 rayRef;
 vec4 mapSmoke(in vec3 pos)
 {
   vec3 pos2 = pos;
-  pos2-= chimneyOrig + vec3(5.65, -0.8, 0.);
+  pos2-= chimneyOrig;
+  pos2.x -= 10.;
 
   // Calculating the smoke domain (3D space giving the probability to have smoke inside
-  float sw = max(tubeDiam*0.84 + 0.25*pos2.y*(1. + max(0.15*pos2.y, 0.)) + 0.2*windIntensity*(pos.y + chimneyOrig.x - tubeclen - tubeLen2 + 0.3), 0.);
-  float smokeDomain = smoothstep(1.2 + sw/4.3, 0.7 - sw*0.5, length(pos2.xz)/sw);
+  float sw = max(tubeDiam*0.84 + 0.25*pos2.y*(1. + max(0.15*pos2.y, 0.)) + 0.01*(pos.y + chimneyOrig.x - tubeclen - tubeLen2 + 0.3), 0.);
+  sw += noise2(vec3(currTime, pos.xy)) * 0.5 * sw;
+
+  float smokeDomain = smoothstep(1.2 + sw/5.3, 0.7 - sw*0.5, length(pos2.xz)/sw);
 
   float d;
   vec4 res;
   if (smokeDomain>0.1)
   {
     // Space modification in function of the time and wind
-    vec3 q = pos2*vec3(1., 1. + 0.5*windIntensity, 1.) + vec3(0.0,-currTime*smokeSpeed + 10.,0.0);
+    vec3 q = pos2 + vec3(0.0,-currTime*smokeSpeed + 10.,0.0);
     q/= smokeScale;
-    q.y+= 8.*dWindIntensity + 1.5/(0.7 + dWindIntensity);
+    q.y+= 8.0 + 1.5/(0.7);
 
     // Turbulence of the smoke
     #ifdef smoke_turbulence
@@ -187,26 +192,14 @@ vec4 raymarchSmoke(in vec3 ro, in vec3 rd, in vec3 bcol, float tmax, bool isShad
   float t = isShadow?5.4:abs(0.95*(campos.z - chimneyOrig.z)/rd.z);
   for(int i=0; i<32; i++)
   {
-    if(t>tmax || sum.w>1.) break;
+    // if(t>tmax || sum.w>1.) break;
     vec3 pos = ro + t*rd;
-
-    // Influence of the wind
-    pos.xz+= windDir*windIntensity*(pos.y + chimneyOrig.x - tubeclen - tubeLen2 + 0.3);
 
     vec4 col = mapSmoke(pos);
 
-    if (col != vec4(0.))
-    {
-      // Color modifications of the smoke
-      col.rgb+= (1. - smokeColPresence)*(1.0 - col.w);
-      col.rgb = mix(col.rgb, bcol, smoothstep(smokeColBias, 0.0, col.w));
-      col.rgb*= col.a;
-
-      sum = sum + col*(1.0 - sum.a);
-    }
-    t+= 0.07*(1. + windIntensity)*max(0.1,0.05*t);
+    sum = sum + col*(1.0 - sum.a);
+    t+= 0.07*(1.0)*max(0.1,0.05*t);
   }
-  sum.rgb/= (0.001 + sum.a);
   return clamp(sum, 0.0, 1.0);
 }
 
@@ -263,8 +256,10 @@ void main()
   currTime = u_time*timeFactor;
   setCamera();
   windIntensity = getWindIntensity(currTime*0.8);
+  // windIntensity = 0.0;
   dWindIntensity = windIntensity - getWindIntensity(currTime*0.8 - 0.2);
-  windAngle = getWindAngle(currTime);
+  // windAngle = getWindAngle(currTime);
+  windAngle = 0.0;
 
   vec2 uv = gl_FragCoord.xy / iResolution.xy;
   uv = uv*2.0 - 1.0;
@@ -272,7 +267,6 @@ void main()
 
   ray = GetCameraRayDir(uv, camdir, fov);
   smokeRes = raymarchSmoke(campos, ray, vec3(1.), 40., false);
-
 
   vec3 col = smokeRes.rgb * smokeRes.w * (1. + 0.06*smokeRes.w);
 
