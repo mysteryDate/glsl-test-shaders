@@ -1,4 +1,4 @@
-/* == oringal shader https://www.shadertoy.com/view/4tcXWj ==*/
+/* == original shader https://www.shadertoy.com/view/4tcXWj ==*/
 
 vec3 gradient(vec2 uv, vec3 startColor, vec3 endColor, vec2 startUV, vec2 endUV) {
   vec2 gradientVector = endUV - startUV;
@@ -10,13 +10,13 @@ vec3 gradient(vec2 uv, vec3 startColor, vec3 endColor, vec2 startUV, vec2 endUV)
 
 void main() {
 	/* == Background == */
-    vec3 grad= gradient (
+  vec3 grad= gradient (
         gl_FragCoord.xy/iResolution.xy,
-        vec3(1, 0.29, 0.244),
-        vec3(1, .9, 0.2),
-        vec2(0, .4),
-        vec2(.255, 1));
-	gl_FragColor = vec4(grad, 1);
+        vec3(1.0, 0.627, 0.75),
+        vec3(1.0, .9, 0.5),
+        vec2(0.0, .4),
+        vec2(.255, 1.0));
+  gl_FragColor = vec4(grad, 1.0);
 
     /* == Sun == */
     vec2 center = vec2(3.0 * iResolution.x / 4.0, 3.0 * iResolution.y / 4.0);
