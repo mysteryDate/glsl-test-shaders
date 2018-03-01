@@ -50,11 +50,18 @@ float sceneSDF(vec3 samplePoint) {
 float distanceToCenter(vec3 eye, vec3 marchingDirection, float start, float end) {
   float depth = start;
   float minDist = end;
+  int numPassed = 0;
   for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
     float dist = sceneSDF(eye + depth * marchingDirection);
     minDist = min(dist, minDist);
-    if (dist > minDist) { // We've passed the minimum
-      return minDist;
+    // if (dist > minDist) { // We've passed the minimum
+    //   numPassed++;
+    //   if (numPassed > 2)
+    //     return minDist;
+    //   // minDist = dist;
+    // }
+    if (dist < EPSILON) {
+      return dist;
     }
     depth += dist;
   }
@@ -99,13 +106,14 @@ void main()
 {
   vec3 viewDir = rayDirection(30.0, iResolution.xy, gl_FragCoord.xy);
 
-  vec3 cameraPosition = vec3(0.0, 0.0, 10.0);
+  vec3 cameraPosition = vec3(0.0, 10.0 * sin(u_time), 10.0);
   vec3 cameraTarget = vec3(0.0, 0.0, 0.0);
   vec3 cameraUp = vec3(0.0, 1.0, 0.0);
   mat4 viewToWorld = makeViewMatrix(cameraPosition, cameraTarget, cameraUp);
   vec3 worldDir = (viewToWorld * vec4(viewDir, 0.0)).xyz;
 
   float dist = distanceToCenter(cameraPosition, worldDir, MIN_DIST, MAX_DIST);
+  vec3 col = vec3(1.0) * smoothstep(1.0, 10.0, 1.0/dist);
 
-  gl_FragColor = vec4(0.1/vec3(dist), 1.0);
+  gl_FragColor = vec4(col, 1.0);
 }
