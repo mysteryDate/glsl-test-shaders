@@ -19,4 +19,12 @@ float valueNoise(vec2 st) {
     return v;
 }
 
+float valueNoise(float x, float y) {
+  return valueNoise(vec2(x, y));
+}
+
+float valueNoise(float x) {
+  return valueNoise(vec2(x, x));
+}
+
 #pragma glslify: export(valueNoise)
