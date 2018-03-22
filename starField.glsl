@@ -2,8 +2,8 @@
 #pragma glslify: hash = require('./lib/hash')
 
 const int GRID_SIZE = 1;
-const float STAR_BRIGHTNESS = 0.03;
-const float MAX_NEIGHBOR_DISTANCE = 1.5;
+const float STAR_BRIGHTNESS = 0.01;
+const float MAX_NEIGHBOR_DISTANCE = 2.0;
 void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   uv.x *= u_resolution.x/u_resolution.y;
@@ -21,8 +21,8 @@ void main() {
       vec2 neighbor = vec2(float(x), float(y));
       vec2 point = map(hash(cellNumber + neighbor), -1.0, 1.0, 0.0, 1.0); // Position of neighbor star in its cell
 
-      vec2 neighborSeed = map(hash(point), -1.0, 1.0, 0.0, 1.0);
-      float starStrength = map(neighborSeed.x, -1.0, 1.0, 0.0, 1.0);
+      vec2 neighborSeed = hash(point);
+      float starStrength = map(neighborSeed.x, -1.0, 1.0, 0.5, 1.0);
       float twinkle = map(sin(neighborSeed.y * 2.0 * u_time), -1.0, 1.0, 0.1, 1.0);
       starStrength *= twinkle;
 
