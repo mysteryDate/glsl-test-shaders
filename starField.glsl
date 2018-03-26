@@ -2,8 +2,8 @@
 #pragma glslify: hash = require('./lib/hash')
 
 const int GRID_SIZE = 1;
-const float STAR_BRIGHTNESS = 0.01;
-const float MAX_NEIGHBOR_DISTANCE = 2.0;
+const float STAR_BRIGHTNESS = 0.03;
+const float MAX_NEIGHBOR_DISTANCE = 1.5;
 void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   uv.x *= u_resolution.x/u_resolution.y;
