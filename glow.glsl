@@ -1,4 +1,5 @@
-uniform sampler2D iChannel0; // textures/cait.jpg
+#pragma glslify: getRandomFloat = require('./lib/getRandomFloat')
+uniform sampler2D iChannel0; // textures/space-text.jpg
 
 // From https://www.shadertoy.com/view/XslGDr
 vec3 highlights(vec3 pixel, float thres)
@@ -9,12 +10,12 @@ vec3 highlights(vec3 pixel, float thres)
 
 vec3 samplef(vec2 tc)
 {
-  return pow(texture2D(iChannel0, tc).xyz, vec3(2.2, 2.2, 2.2));
+  return pow(texture2D(iChannel0, tc).xyz, vec3(0.9));
 }
 
 vec3 hsample(vec2 tc)
 {
-  return highlights(samplef(tc), 0.6);
+  return highlights(samplef(tc), 0.3);
 }
 
 vec3 blur(vec2 tc, float offs)
@@ -58,20 +59,26 @@ vec3 blur(vec2 tc, float offs)
 
 void main()
 {
-  vec2 tc = gl_FragCoord.xy / iResolution.xy;
-  vec3 color = blur(tc, 2.0);
-  color += blur(tc, 3.0);
-  color += blur(tc, 5.0);
-  color += blur(tc, 7.0);
-  color /= 4.0;
+  vec2 uv = gl_FragCoord.xy / iResolution.xy;
+  float offset = iMouse.y * iResolution.y / 100.0;
+  vec3 color = blur(uv, offset);
 
-  color += samplef(tc);
+  color += samplef(uv);
+  vec2 noiseDensity = 1.0 / vec2(0.01, 1.0);
+  float noiseSpeed = 0.031;
+  float cellSize = 0.003;
+  vec2 noiseUV = floor(uv / cellSize) * cellSize;
+  float r = smoothstep(0.9, 1.0, getRandomFloat(-noiseUV * noiseDensity + 1.2 * noiseSpeed * u_time));
+  float g = smoothstep(0.9, 1.0, getRandomFloat(noiseUV * noiseDensity + noiseSpeed * u_time));
+  float b = smoothstep(0.9, 1.0, getRandomFloat(noiseUV * noiseDensity + 1.8 * noiseSpeed * u_time));
+  vec3 noise = vec3(r, g, b) * iMouse.y * 0.5;
+  color += noise;
 
   float div_pos = iMouse.x;
-  if(iMouse.x < 0.1) {
-  div_pos = 0.5;
-  }
-  float divider = smoothstep(div_pos - 0.01, div_pos + 0.01, tc.x);
-  gl_FragColor.xyz = mix(samplef(tc), color, divider) * (divider * divider + (1.0 - divider) * (1.0 - divider));
-  gl_FragColor.w = 1.0;
+  float divider = smoothstep(div_pos - 0.01, div_pos + 0.01, uv.x);
+  vec4 original = texture2D(iChannel0, uv);
+  color = mix(original.rgb, color, divider);
+  color = mix(color, vec3(1.0, 0.0, 1.0), 1.0 - 2.0 * abs(0.5 - divider));
+  gl_FragColor = vec4(color, 1.0);
+
 }
