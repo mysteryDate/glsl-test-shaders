@@ -14,10 +14,11 @@ float sin01(float x) {
 }
 
 #define PI 3.14159
-#define NUM_CIRCLES 12
+#define NUM_CIRCLES 8
 #define c1 vec3(0.25, 0.2, 0.4)
 #define c2 vec3(0.99, 0.55, 0.79)
-#define OFFSET 12
+#define OFFSET 18
+#define SPEED 0.3
 void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
   uv = map(uv, 0.0, 1.0, -1.0, 1.0);
@@ -25,7 +26,7 @@ void main() {
 
   float height = 0.0;
   for (int i = 1 + OFFSET; i <= NUM_CIRCLES + OFFSET; i++) {
-    float angle = float(i) * u_time * 0.2 + PI/2.0;
+    float angle = float(i) * u_time * SPEED + PI/2.0;
     // float angle = 0.0;
     vec2 pos = vec2(sin(angle), cos(angle)) * 0.5;
     float radius = 3.0 / float(i);
