@@ -100,7 +100,7 @@ mat4 makeViewMatrix(vec3 eye, vec3 center, vec3 up) {
 
 void main()
 {
-  vec3 viewDir = rayDirection(30.0, iResolution.xy, gl_FragCoord.xy);
+  vec3 viewDir = rayDirection(35.0, iResolution.xy, gl_FragCoord.xy);
 
   float off1 = 0.4;
   float off2 = 0.2;
@@ -122,7 +122,8 @@ void main()
   float blueDist = shortestDistanceToSurface(blueEye, worldDir, MIN_DIST, MAX_DIST);
 
   vec3 col = vec3(redDist, greenDist, blueDist);
+  // vec3 col = vec3(redDist, 0.0, 0.0);
   // vec3 col = vec3(redDist);
-  vec3 amps = vec3(sin(u_time + 1.2), sin(u_time + 1.2 + 1.5), sin(u_time + 1.2 + 3.0)) + 0.0;
-  gl_FragColor = vec4(0.1/col * amps, 1.0);
+  // vec3 amps = 0.5 * vec3(sin(u_time + 1.2), sin(u_time + 1.2 + 1.5), sin(u_time + 1.2 + 3.0)) + 0.6;
+  gl_FragColor = vec4(1.0 - 0.01/col, 1.0);
 }

@@ -15,9 +15,9 @@ float sin01(float x) {
 
 #define PI 3.14159
 #define NUM_CIRCLES 8
-#define c1 vec3(0.25, 0.2, 0.4)
-#define c2 vec3(0.99, 0.55, 0.79)
-#define OFFSET 18
+#define c1 vec3(1.0, 1.0, 1.0)
+#define c2 vec3(0.96, 0.19, 0.61)
+#define OFFSET 8
 #define SPEED 0.3
 void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
