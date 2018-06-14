@@ -14,26 +14,28 @@ float outline(float width, float fade, vec2 st) {
   return result.x + result.y;
 }
 
-float lineWidth = 0.01;
+float lineWidth = 0.05;
+float numSquares = 5.0;
 void main() {
   vec2 uv = gl_FragCoord.xy/u_resolution.xy;
-  uv = map(uv, 0.0, 1.0, -1.0, 1.0);
+  float easing = 0.655;
+  float zoom = mod(u_time / 10.0, pow(0.4, 1.0/easing));
+  zoom = pow(zoom, easing);
+  uv = map(uv, 0.0, 1.0, zoom, 1.0 - zoom);
   vec3 color = vec3(0.0);
 
-  float numSquares = mod(u_time/10.0, 2.0) + 0.5;
-  // float numSquares = 2.0;
+  // float numSquares = mod(u_time/10.0, 2.0) + 0.5;
+  float lines = outline(0.0, lineWidth, uv);
+  color += lines;
   vec2 sqUV = uv;
   vec2 lastUV = uv;
-  for(int ii = 0; ii < 8; ii++)
+  for(int ii = 0; ii < 4; ii++)
   {
-    vec2 edgeUV = abs(lastUV - 0.5);
     sqUV = mod(sqUV, 1.0/numSquares) * numSquares;
-    float edge = 1.0 - step(0.2, max(edgeUV.x, edgeUV.y));
-    float lines = outline(0.0, lineWidth, sqUV);
-    // lines *= edge;
+    lines = outline(0.0, lineWidth, sqUV);
     color += lines;
     lastUV = sqUV;
   }
 
-  gl_FragColor.rgb = color;
+  gl_FragColor.rgb = 1.0 - color;
 }
