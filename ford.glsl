@@ -4,8 +4,8 @@
 
 uniform sampler2D heart_unbroken;
 uniform sampler2D perlin_noise;
-uniform sampler2D cait; // textures/cait.jpg
-// uniform sampler2D cait;
+uniform sampler2D headshotbnw; // textures/headshotbnw.jpg
+// uniform sampler2D headshotbnw;
 
 vec2 random2(vec2 st){
     st = vec2( dot(st,vec2(0.040,-0.250)),
@@ -27,6 +27,8 @@ float valuenoise(vec2 st) {
                      dot( random2(i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
 }
 
+// RGB to luma
+// Y = 0.2126 * R + 0.7152 * G + 0.0722 * B
 void main()
 {
   vec2 uv = gl_FragCoord.xy/iResolution.xy;
@@ -51,15 +53,17 @@ void main()
 
   vec4 color = vec4(1.0) - vec4(0.74, 0.07, 0.03, 1.0);
 
-  vec4 heartTex = texture2D(cait, uv);
-  // float heart2 = texture2D(cait, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(.01, 0.0)).a;
-  // float heart3 = texture2D(cait, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(-.01, 0.0)).a;
-  // float heart4 = texture2D(cait, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(0.0, 0.01)).a;
-  // float heart5 = texture2D(cait, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(0.0, -0.01)).a;
-  vec4 heart2 = texture2D(cait, uv + 100.0 * iMouse.x * valuenoise(uv * 20.0 * iMouse.y + iGlobalTime) * vec2(.01, 0.0));
-  vec4 heart3 = texture2D(cait, uv + 100.0 * iMouse.x * valuenoise(uv * 20.0 * iMouse.y + iGlobalTime) * vec2(-.01, 0.0));
-  vec4 heart4 = texture2D(cait, uv + 400.0 * iMouse.x * valuenoise(uv * 20.0 * iMouse.y + iGlobalTime) * vec2(0.0, 0.01));
-  vec4 heart5 = texture2D(cait, uv + 100.0 * iMouse.x * valuenoise(uv * 20.0 * iMouse.y + iGlobalTime) * vec2(0.0, -0.01));
+  vec4 heartTex = texture2D(headshotbnw, uv);
+  // float heart2 = texture2D(headshotbnw, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(.01, 0.0)).a;
+  // float heart3 = texture2D(headshotbnw, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(-.01, 0.0)).a;
+  // float heart4 = texture2D(headshotbnw, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(0.0, 0.01)).a;
+  // float heart5 = texture2D(headshotbnw, uv + 7.0 * iMouse.x * valuenoise(uv * 10.0 + iGlobalTime) * vec2(0.0, -0.01)).a;
+  float clock = iGlobalTime / 100.0 + 200.0;
+  vec2 control = iMouse / 3.0;
+  vec4 heart2 = texture2D(headshotbnw, uv + 100.0 * control.x * valuenoise(uv * 20.0 * control.y + clock) * vec2(.01, 0.0));
+  vec4 heart3 = texture2D(headshotbnw, uv + 100.0 * control.x * valuenoise(uv * 20.0 * control.y + clock) * vec2(-.01, 0.0));
+  vec4 heart4 = texture2D(headshotbnw, uv + 400.0 * control.x * valuenoise(uv * 20.0 * control.y + clock) * vec2(0.0, 0.01));
+  vec4 heart5 = texture2D(headshotbnw, uv + 100.0 * control.x * valuenoise(uv * 20.0 * control.y + clock) * vec2(0.0, -0.01));
 // //
   vec4 trans = (heart2 + heart3 + heart4 + heart5)/4.0;
 
@@ -69,4 +73,7 @@ void main()
   // gl_FragColor = vec4(heartTex.rg, heart4.b, 1.0);
   // gl_FragColor = heartTex;
   // gl_FragColor = vec4(1.0, 0., 1., 1.) * d;
+  // vec4 bnw = texture2D(headshot, uv);
+  // float y = length(vec3(0.2126, 0.7152, 0.0722) * bnw.rgb);
+  // gl_FragColor = vec4(y);
 }
