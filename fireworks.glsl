@@ -5,7 +5,7 @@
 #define TWOPI 6.283185307179586
 #define S(x,y,z) smoothstep(x,y,z)
 #define B(x,y,z,w) S(x-z, x+z, w)*S(y+z, y-z, w)
-#define saturate(x) clamp(x,0.,1.)
+// #define saturate(x) clamp(x,0.,1.)
 
 #define NUM_EXPLOSIONS 8.
 #define NUM_PARTICLES 70.

@@ -11,7 +11,7 @@
 #define NUM_LINES 4
 #define NUM_BLOTCHES 8
 
-uniform sampler2D iChannel0; // ../cait.jpg
+uniform sampler2D iChannel0; // textures/cait.jpg
 vec2 uv;
 
 float rand(vec2 co){
